@@ -19,8 +19,8 @@ import Prototype1.Endorsement;
 
 public class BlackMirror implements SocialMediaPlatform {
 
-	ArrayList<Account> accounts = new ArrayList<Account>();
-	Account graveyard = new Account(0, "", "");
+	ArrayList<Account> accounts = new ArrayList<>();
+	ArrayList<Comment> graveyard = new ArrayList<>(); // comments wherer the post has been deleted
 
 
 	@Override
@@ -122,14 +122,17 @@ public class BlackMirror implements SocialMediaPlatform {
 
 	@Override
 	public int getNumberOfAccounts() {
-		// TODO Auto-generated method stub
-		return 0;
+		return accounts.size();
 	}
 
 	@Override
 	public int getTotalOriginalPosts() {
-		// TODO Auto-generated method stub
-		return 0;
+		int count= 0;
+		for (Account i : accounts){
+			count += i.getNumberOf("Post");
+		}
+		count += graveyard.size();
+		return count;
 	}
 
 	@Override
