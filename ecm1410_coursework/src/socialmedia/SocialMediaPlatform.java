@@ -88,7 +88,7 @@ public interface SocialMediaPlatform extends MiniSocialMediaPlatform {
 	 * 
 	 * @return the total number of endorsement posts in the platform.
 	 */
-	int getTotalEndorsmentPosts();
+	int getTotalEndorsementPosts();
 
 	/**
 	 * This method returns the current total number of comments posts present in the

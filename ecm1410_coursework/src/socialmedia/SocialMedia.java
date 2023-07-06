@@ -3,8 +3,6 @@ package socialmedia;
 import java.io.IOException;
 import java.io.File;
 import java.io.FileWriter;
-import java.util.ArrayList;
-
 import java.util.*; 
 
 import java.io.BufferedWriter;
@@ -14,11 +12,13 @@ import java.io.FileReader;
 
 public class SocialMedia implements SocialMediaPlatform {
 
-	ArrayList<Account> accounts = new ArrayList<>();
-	ArrayList<FeedDenizen> orphanage = new ArrayList<>(); // comments wherer the post has been deleted
+	ArrayList<Account> accounts = new ArrayList<>(); //List of Accounts
+	ArrayList<FeedDenizen> orphanage = new ArrayList<>(); // Comments where the post has been deleted
 
 
+	//Returns an Account object of an account from an ID given 
 	public Account findAccountFromID(int id) throws AccountIDNotRecognisedException{
+		
 		for (Account i : accounts){
 			if(i.getID() == id){
 				return i;
@@ -27,7 +27,9 @@ public class SocialMedia implements SocialMediaPlatform {
 		throw new AccountIDNotRecognisedException();
 	}
 
+	//Returns an Account object of an account from a given Handle
 	public Account findAccountFromHandle(String handle) throws HandleNotRecognisedException{
+
 		for (Account i : accounts){
 			if(handle.equals(i.getHandle())){
 				return i;
@@ -37,7 +39,9 @@ public class SocialMedia implements SocialMediaPlatform {
 	}
 
 
+	//Returns an Account object of an account from an ID given, only to be used if account ID is known to exist
 	public Account findAccountFromKnownID(int id){
+
 		for (Account i : accounts){
 			if(i.getID() == id){
 				return i;
@@ -47,42 +51,46 @@ public class SocialMedia implements SocialMediaPlatform {
 	}
 
 
+	// Unpacks an ID into Account ID and Post ID 
 	public int[] unpackID(int id){
-		String strID = String.valueOf(id);
-		int postID = Integer.parseInt(strID.substring(strID.length() -4, strID.length()));
-		int accountID = Integer.parseInt(strID.substring(0, strID.length()-4));
+
+        int accountID = (int)Math.floor(id/10000);
+        int postID = id - (accountID * 10000);
 		int[] result = {accountID, postID};
 		return result;
 	}
 
 
+	// Returns a post from a given ID  
 	public FeedDenizen findPostFromID(int id) throws PostIDNotRecognisedException{
-		String strID = String.valueOf(id);
-		int postID = Integer.parseInt(strID.substring(strID.length() -4, strID.length()));
-		int accountID = Integer.parseInt(strID.substring(0, strID.length()-4));
-		Account account = findAccountFromKnownID(accountID);
-		FeedDenizen post = account.getPost(postID);
+
+		int[] ids = unpackID(id);
+		Account account = findAccountFromKnownID(ids[0]);
+		FeedDenizen post = account.getPost(ids[1]);
 		return post;
 	}
 
-
+	// Returns a post from a given ID, only to be used if account ID is known to exist
 	public FeedDenizen findPostFromKnownID(int id){
-		String strID = String.valueOf(id);
-		int postID = Integer.parseInt(strID.substring(strID.length() -4, strID.length()));
-		int accountID = Integer.parseInt(strID.substring(0, strID.length()-4));
-		Account account = findAccountFromKnownID(accountID);
-		FeedDenizen post = account.getKnownPost(postID);
+
+		int[] ids = unpackID(id);
+		Account account = findAccountFromKnownID(ids[0]);
+		FeedDenizen post = account.getKnownPost(ids[1]);
 		return post;
 	}
 		
 
+	// Creates an account with a blank description by calling createAccount with a blank description
 	@Override
 	public int createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
+
 		return createAccount(handle, "");
 	}
 
+	// Validates if the handle is unique and the description follows the rules, and if so creates an account with the next ID and adds it to the account list, then returns the ID
 	@Override
 	public int createAccount(String handle, String description) throws IllegalHandleException, InvalidHandleException {
+
 		if (!(0 < handle.length() && handle.length() < 31)){	
 			throw new InvalidHandleException();
 		}
@@ -103,8 +111,10 @@ public class SocialMedia implements SocialMediaPlatform {
 		return next_index;
 	}
 
+	// Calls findAccountFromID, if an account is found, calls the delete method on that account, and stores all the children post in the orphanage list, then removes the account from the account list 
 	@Override
 	public void removeAccount(int id) throws AccountIDNotRecognisedException {
+
 		Account i = findAccountFromID(id);
 		List<Integer> orphans = i.delete();
 		for (Integer childID : orphans){
@@ -113,8 +123,10 @@ public class SocialMedia implements SocialMediaPlatform {
 		accounts.remove(i);
 	}
 
+	// Finds an account and adds all the comments of this account's posts to the orphanage then removes the account and calls the delete account method
 	@Override
 	public void removeAccount(String handle) throws HandleNotRecognisedException {
+
 		Account i = findAccountFromHandle(handle);
 		List<Integer> orphans = i.delete();
 		for (Integer childID : orphans){
@@ -123,44 +135,60 @@ public class SocialMedia implements SocialMediaPlatform {
 		accounts.remove(i);
 	}
 
+	// Validates the handle is legal, then iterates through the list of accounts and checks their handle. 
+	// If the handle matches the new handle, the new handle can't be used so IllegalHandleException is Thrown
+	// If the handle matches the old handle, this is the account we want to change the handle of so we store the index for later 
+	// Once the loop is done, if an index was found for the account, the handle is changed, else it throws HandleNotRecognisedException
 	@Override
 	public void changeAccountHandle(String oldHandle, String newHandle)
 			throws HandleNotRecognisedException, IllegalHandleException, InvalidHandleException {
+
 		if (!(0 < newHandle.length() && newHandle.length() < 31)){	
 			throw new InvalidHandleException();
 		} 
 		int acc = -1;	
-		for (int i = 0; i > accounts.size(); i++){
-			if (newHandle.equals(accounts.get(i).getHandle())) {
+		for (int i = 0; i < accounts.size(); i++){
+			String currentHandle = accounts.get(i).getHandle();
+			if (newHandle.equals(currentHandle)) {
 				throw new IllegalHandleException();
 			}
-			if (oldHandle.equals(accounts.get(i).getHandle())) {
+			if (oldHandle.equals(currentHandle)) {
 				acc = i;
 			}
-			if ((i == accounts.size() - 1) && (acc > -1)) {
-				accounts.get(acc).setHandle(newHandle);
-			}
 		}
-		throw new HandleNotRecognisedException();
+
+		if (acc > -1) {
+			accounts.get(acc).setHandle(newHandle);
+			}
+		else{
+			throw new HandleNotRecognisedException();
+		}
 	}
 
+
+	// Uses the findAccountFromHandle method to find the account, and changes the description if one is found
 	@Override
 	public void updateAccountDescription(String handle, String description) throws HandleNotRecognisedException {
+
 		findAccountFromHandle(handle).setDescription(description);
 	}
 
+	// Uses the findAccountFromHandle method to find the account, then returns a formatted string to display the information abut the account
 	@Override
 	public String showAccount(String handle) throws HandleNotRecognisedException {
+
 		Account i = findAccountFromHandle(handle);
 		return  "ID: " + i.getID() + System.lineSeparator() + 
 				"Handle: " + handle + System.lineSeparator() +
 				"Description: " + i.getDescription() + System.lineSeparator() +
 				"Post count: " + i.getNumberOf("Post") + System.lineSeparator() +
-				"Endorce count: " + i.getNumberOf("Endorcement");	
+				"Endorse count: " + i.getNumberOf("Endorsement");	
 	}
 
+	// Validates the message length, attempts to find the account, calls the post method on the account, then returns the posts ID
 	@Override
 	public int createPost(String handle, String message) throws HandleNotRecognisedException, InvalidPostException {
+
 		if (!(0 < message.length() && message.length() < 100)){	
 			throw new InvalidPostException();
 		}
@@ -168,8 +196,10 @@ public class SocialMedia implements SocialMediaPlatform {
 		return post.getID();
 	}
 
+	// Attempts to find the post and account, then validates that it is a post (not comment/endorsement) then calls the endorsee method on the post and returns the endorsement ID
 	@Override
 	public int endorsePost(String handle, int id) throws HandleNotRecognisedException, PostIDNotRecognisedException, NotActionablePostException {
+
 		FeedDenizen post = findPostFromID(id);
 		if (post.getClass().getSimpleName().equals("Post")){
 			Endorsement end = findAccountFromHandle(handle).endorse(id);
@@ -179,14 +209,17 @@ public class SocialMedia implements SocialMediaPlatform {
 		throw new NotActionablePostException();
 	}
 
+	// Validates the message length, attempts to find the account, then validates that it is not a endorsement, then calls the comment method on the account, then returns the posts ID
 	@Override
 	public int commentPost(String handle, int id, String message) throws HandleNotRecognisedException, PostIDNotRecognisedException, NotActionablePostException, InvalidPostException {
+
 		if (!(0 < message.length() && message.length() < 100)){	
 			throw new InvalidPostException();
 		}
 		FeedDenizen post = findPostFromID(id);
 		if (!post.getClass().getSimpleName().equals("Endorsement")){
 			Comment comment = findAccountFromHandle(handle).comment(message, id);
+
 			return comment.getID();
 		}
 		throw new NotActionablePostException();
@@ -209,7 +242,7 @@ public class SocialMedia implements SocialMediaPlatform {
 		FeedDenizen post = findPostFromID(id);
 		return  "ID: " + post.getID() + System.lineSeparator() + 
 				"Account: " + account.getHandle() + System.lineSeparator() +
-				"No. endorsements: " + post.getTotalEndorsments()  + "| No. comments: " + post.getTotalComments() + System.lineSeparator() + 
+				"No. endorsements: " + post.getTotalEndorsements()  + "| No. comments: " + post.getTotalComments() + System.lineSeparator() + 
 				post.getText();
 				
 	}
@@ -280,7 +313,7 @@ public class SocialMedia implements SocialMediaPlatform {
 	}
 
 	@Override
-	public int getTotalEndorsmentPosts() {
+	public int getTotalEndorsementPosts() {
 		int count= 0;
 		for (Account i : accounts){
 			count += i.getNumberOf("Endorsement");
@@ -302,9 +335,10 @@ public class SocialMedia implements SocialMediaPlatform {
 		int previous = 0;
 		int previousID = 0;
 		for (Account account : accounts){
-			if (account.mostEndorsments()[0] - previous > 0){
-				previous = account.mostEndorsments()[0];
-				previousID = account.mostEndorsments()[1];
+			int[] current = account.mostEndorsements();
+			if (current[0] - previous > 0){
+				previous = current[0];
+				previousID = current[1];
 			}
 		}
 		return previousID;
@@ -312,18 +346,21 @@ public class SocialMedia implements SocialMediaPlatform {
 
 	@Override
 	public int getMostEndorsedAccount() {
-		int previous = 0;
-		int previousID = 0;
-		for (Account account : accounts){
-			if (account.mostEndorsments()[0] - previous > 0){
-				previous = account.mostEndorsments()[0];
-				previousID = account.getID();
-			}
-		}
-		return previousID;
+		// int previous = 0;
+		// int previousID = 0;
+		// for (Account account : accounts){
+		// 	if (account.mostEndorsements()[0] - previous > 0){
+		// 		previous = account.mostEndorsements()[0];
+		// 		previousID = account.getID();
+		// 	}
+		// }
+		// return previousID;
+		int mostEndorsedID = getMostEndorsedPost();
+		int[] ids = unpackID(mostEndorsedID);
+		return ids[0];
 	}
 	
-
+	// Removes all references to accounts and therefore posts. Also removes all reference to orphan posts
 	@Override
 	public void erasePlatform() {
 		accounts.removeAll(accounts);
@@ -331,6 +368,14 @@ public class SocialMedia implements SocialMediaPlatform {
 
 	}
 
+	// Starts by deleting any existing files with the same filename in the same directory if they exist
+	// To the txt file, it writes:
+	// For each account it writes the account: ID, handle, description followed by an opening bracket 
+	//		For each post from that account's timeline it writes post: type, ID, text, total comments, total endorsements, parent ID followed by an opening bracket
+	//  		For each comment for each post it writes the ID followed by a line (|)
+	//      Ends the post 
+	// Therefore the formatting for one account look like:
+	// 34,Maurice Moss,IT support at Reynholm Industries,(P,340009,Did you see that ludicrous display last night?,1,3,0,(560023|)/C,340010,thing about Arsenal is they always try and walk it in,2,2,560023,(560024|470143|)/)
 	@Override
 	public void savePlatform(String filename) throws IOException {
 		try{
@@ -350,7 +395,7 @@ public class SocialMedia implements SocialMediaPlatform {
 				line.append("(");
 				for (FeedDenizen post : account.getTimeline()){
 					char type = post.getClass().getSimpleName().charAt(0);
-					line.append(type + "," + post.getID() + "," + post.getText() + "," + post.getTotalComments() + "," + post.getTotalEndorsments() + "," + post.getParent() + ",");
+					line.append(type + "," + post.getID() + "," + post.getText() + "," + post.getTotalComments() + "," + post.getTotalEndorsements() + "," + post.getParent() + ",");
 
 					line.append("(");
 					for (Integer child : post.getChildren()){
@@ -366,10 +411,9 @@ public class SocialMedia implements SocialMediaPlatform {
 		} catch (IOException e){
 			throw new IOException();
 		}
-
-
 	}
 
+	// For each line in the file, it creates an account. For each post on the account it creates the relevant post and adds it to the timeline.
 	@Override
 	public void loadPlatform(String filename) throws IOException, ClassNotFoundException {
 		BufferedReader reader;
@@ -385,10 +429,11 @@ public class SocialMedia implements SocialMediaPlatform {
 				Account account = new Account(id, accDesc[1], accDesc[2]);
 				for (String p : posts){
 					String[] splitPost = p.split(",");
+
 					if (splitPost[0].equals("P")){
-						Post newpost = account.post(splitPost[2]);
-						int endorcements = Integer.parseInt(splitPost[4]);
-						newpost.endorcements = endorcements;
+						Post newPost = account.post(splitPost[2]);
+						int endorsements = Integer.parseInt(splitPost[4]);
+						newPost.endorsements = endorsements;
 						int noComments = Integer.parseInt(splitPost[3]);
 						if (noComments > 0){
 							String strComments = splitPost[6].substring(1, splitPost[6].length() - 1);
@@ -398,14 +443,14 @@ public class SocialMedia implements SocialMediaPlatform {
 								int y = Integer.parseInt(i);
 								children.add(y);
 							}
-							newpost.children = children;
+							newPost.children = children;
 						}
 					}
 					if (splitPost[0].equals("C")){
 						int parent = Integer.parseInt(splitPost[5]);
-						Comment newpost = account.comment(splitPost[2], parent);
-						int endorcements = Integer.parseInt(splitPost[4]);
-						newpost.endorcements = endorcements;
+						Comment newPost = account.comment(splitPost[2], parent);
+						int endorsements = Integer.parseInt(splitPost[4]);
+						newPost.endorsements = endorsements;
 						int noComments = Integer.parseInt(splitPost[3]);
 						if (noComments > 0){
 							String strComments = splitPost[6].substring(1, splitPost[6].length() - 1);
@@ -415,16 +460,12 @@ public class SocialMedia implements SocialMediaPlatform {
 								int y = Integer.parseInt(i);
 								children.add(y);
 							}
-							newpost.children = children;
+							newPost.children = children;
 						}
 					}
 					if (splitPost[0].equals("E")){
 						int parent = Integer.parseInt(splitPost[5]);
-						try {
-							account.endorse(parent);
-						} catch (Exception e) {
-						}
-
+						account.endorse(parent);
 					}
 				}
 			}

@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Post extends FeedDenizen {
-    int endorcements;
+    int endorsements;
     String text;
     List<Integer> children;
 
     public Post(int id, int accID, String message){
         init(id, accID);
-        this.endorcements = 0;
+        this.endorsements = 0;
         this.text = message;
         this.children = new ArrayList<>();
     }
@@ -20,11 +20,25 @@ public class Post extends FeedDenizen {
     }
 
     public void endorse(){
-        this.endorcements += 1;
+        this.endorsements += 1;
     }
 
-    public int getTotalEndorsments(){
-        return this.endorcements;
+    public void addComment(int commentID){
+        this.children.add(commentID);
+    }
+
+    public void removeComment(int commentID){
+        boolean found = false;
+        for (int i = 0; (i < children.size()) & !found; i++){
+            if (children.get(i) == commentID){
+                children.remove(i);
+                found = true;
+            }
+        }
+    }
+
+    public int getTotalEndorsements(){
+        return this.endorsements;
     }
 
     public int getTotalComments(){

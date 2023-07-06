@@ -4,7 +4,7 @@ import java.util.List;
 
 public class Comment extends FeedDenizen{
     int parentID;
-    int endorcements;
+    int endorsements;
     String text;
     List<Integer> children;
 
@@ -13,7 +13,7 @@ public class Comment extends FeedDenizen{
         this.parentID = postID;
         this.text = message;
         this.children = new ArrayList<>();
-        this.endorcements = 0;
+        this.endorsements = 0;
     }
 
     public int getParent(){
@@ -25,7 +25,7 @@ public class Comment extends FeedDenizen{
     }
 
     public void endorse(){
-        this.endorcements += 1;
+        this.endorsements += 1;
     }
 
     public String getText(){

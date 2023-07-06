@@ -1,6 +1,5 @@
 package socialmedia;
 
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,12 +37,12 @@ public class Account {
         return this.timeline;
     }
 
-    public int[] mostEndorsments(){
+    public int[] mostEndorsements(){
         int previous = 0;
         int previousID = 0; 
         for (FeedDenizen i : this.timeline){
-            if (i.getTotalEndorsments() - previous > 0){
-                previous = i.getTotalEndorsments();
+            if (i.getTotalEndorsements() > previous){
+                previous = i.getTotalEndorsements();
                 previousID = i.getID();
             }
         }
@@ -101,10 +100,10 @@ public class Account {
         return post;
     }
 
-    public Endorsement endorse(int id) throws NotActionablePostException, PostIDNotRecognisedException{
-        Endorsement endorcement = new Endorsement(this.timeline.size(), this.ID, id);
-        this.timeline.add(endorcement);
-        return endorcement;
+    public Endorsement endorse(int id){
+        Endorsement endorsement = new Endorsement(this.timeline.size(), this.ID, id);
+        this.timeline.add(endorsement);
+        return endorsement;
     }
 
     public Comment comment(String message, int postID){
