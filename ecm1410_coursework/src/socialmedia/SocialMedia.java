@@ -225,6 +225,7 @@ public class SocialMedia implements SocialMediaPlatform {
 		throw new NotActionablePostException();
 	}
 
+	// Finds the post, then calls the delete method on it, and adds all the child comments to the orphanage
 	@Override
 	public void deletePost(int id) throws PostIDNotRecognisedException {
 		int[] ids = unpackID(id);
@@ -235,6 +236,7 @@ public class SocialMedia implements SocialMediaPlatform {
 		}
 	}
 
+	// Formats a string to contain all the information for a single post: ID, account, total endorsements, total comments, post text
 	@Override
 	public String showIndividualPost(int id) throws PostIDNotRecognisedException {
 		int[] ids = unpackID(id);
@@ -243,14 +245,16 @@ public class SocialMedia implements SocialMediaPlatform {
 		return  "ID: " + post.getID() + System.lineSeparator() + 
 				"Account: " + account.getHandle() + System.lineSeparator() +
 				"No. endorsements: " + post.getTotalEndorsements()  + "| No. comments: " + post.getTotalComments() + System.lineSeparator() + 
-				post.getText();
-				
+				post.getText();		
 	}
 
-	
-
+	// Finds a post from an ID and adds it to a new List. Then it iterates through the list and for each post adds the formatted string from the showIndividualPost method
+	// The for each post it checks if it has children, if so it adds the children to the list directly after their parent post and adds one to the indent level
+	// It also adds the int 0 to the list after the children it just added. The 0 signifies when to go back down an indent level.
+	// When the list is exhausted, the formatted string is returned
 	@Override
 	public StringBuilder showPostChildrenDetails(int id)throws PostIDNotRecognisedException, NotActionablePostException {
+
 		List<Integer> posts = new ArrayList<>();
 		posts.add(id);
 
@@ -260,6 +264,7 @@ public class SocialMedia implements SocialMediaPlatform {
 		int indentLevel = 0;
 		int index = 0;
 		while (index < posts.size()){
+
 			if (posts.get(index) != 0){
 				String[] comment = showIndividualPost(posts.get(index)).split(System.lineSeparator());
 				for (String line : comment){
@@ -293,18 +298,20 @@ public class SocialMedia implements SocialMediaPlatform {
 			}
 			index += 1;
 		}
-
-
 		return str;
 	}
 
+	// Returns the number of accounts
 	@Override
 	public int getNumberOfAccounts() {
+
 		return accounts.size();
 	}
 
+	// Iterates through the accounts, and sums the number of post type posts
 	@Override
 	public int getTotalOriginalPosts() {
+
 		int count= 0;
 		for (Account i : accounts){
 			count += i.getNumberOf("Post");
@@ -312,8 +319,10 @@ public class SocialMedia implements SocialMediaPlatform {
 		return count;
 	}
 
+	// Iterates through the accounts, and sums the number of endorsements type posts
 	@Override
 	public int getTotalEndorsementPosts() {
+
 		int count= 0;
 		for (Account i : accounts){
 			count += i.getNumberOf("Endorsement");
@@ -321,8 +330,10 @@ public class SocialMedia implements SocialMediaPlatform {
 		return count;
 	}
 
+	// Iterates through the accounts, and sums the number of comment type posts
 	@Override
 	public int getTotalCommentPosts() {
+
 		int count= 0;
 		for (Account i : accounts){
 			count += i.getNumberOf("Comment");
@@ -330,8 +341,10 @@ public class SocialMedia implements SocialMediaPlatform {
 		return count;
 	}
 
+	// Iterates through the accounts, and finds the account with the most endorsed post 
 	@Override
 	public int getMostEndorsedPost() {
+
 		int previous = 0;
 		int previousID = 0;
 		for (Account account : accounts){
@@ -344,25 +357,26 @@ public class SocialMedia implements SocialMediaPlatform {
 		return previousID;
 	}
 
+	// Iterates through the accounts, and finds the account with the most endorsements 
 	@Override
 	public int getMostEndorsedAccount() {
-		// int previous = 0;
-		// int previousID = 0;
-		// for (Account account : accounts){
-		// 	if (account.mostEndorsements()[0] - previous > 0){
-		// 		previous = account.mostEndorsements()[0];
-		// 		previousID = account.getID();
-		// 	}
-		// }
-		// return previousID;
-		int mostEndorsedID = getMostEndorsedPost();
-		int[] ids = unpackID(mostEndorsedID);
-		return ids[0];
+
+		int previous = 0;
+		int previousID = 0;
+		for (Account account : accounts){
+			int current = account.totalEndorsements();
+			if (current > previous){
+				previous = current;
+				previousID = account.getID();
+			}
+		}
+		return previousID;
 	}
 	
 	// Removes all references to accounts and therefore posts. Also removes all reference to orphan posts
 	@Override
 	public void erasePlatform() {
+
 		accounts.removeAll(accounts);
 		orphanage.removeAll(orphanage);
 
@@ -378,6 +392,7 @@ public class SocialMedia implements SocialMediaPlatform {
 	// 34,Maurice Moss,IT support at Reynholm Industries,(P,340009,Did you see that ludicrous display last night?,1,3,0,(560023|)/C,340010,thing about Arsenal is they always try and walk it in,2,2,560023,(560024|470143|)/)
 	@Override
 	public void savePlatform(String filename) throws IOException {
+
 		try{
 			File f = new File(filename);
 			if (f.exists()){
@@ -416,6 +431,7 @@ public class SocialMedia implements SocialMediaPlatform {
 	// For each line in the file, it creates an account. For each post on the account it creates the relevant post and adds it to the timeline.
 	@Override
 	public void loadPlatform(String filename) throws IOException, ClassNotFoundException {
+
 		BufferedReader reader;
 		String line = null;
 		try{

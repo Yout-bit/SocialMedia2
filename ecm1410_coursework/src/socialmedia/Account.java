@@ -9,8 +9,8 @@ public class Account {
     String description;
     List<FeedDenizen> timeline;
 
-    public Account(int x, String y, String z){
-        this.ID = x; 
+    public Account(int id, String y, String z){
+        this.ID = id; 
         this.handle = y;
         this.description = z;
         this.timeline = new ArrayList<>();
@@ -37,6 +37,7 @@ public class Account {
         return this.timeline;
     }
 
+    // Iterates through the timeline and fins the most endorsed post  
     public int[] mostEndorsements(){
         int previous = 0;
         int previousID = 0; 
@@ -47,6 +48,15 @@ public class Account {
             }
         }
         return new int[] {previous, previousID};
+    }
+
+    // Sums the total amount of endorsements the account has received
+    public int totalEndorsements(){
+        int sum = 0;
+        for (FeedDenizen i : timeline){
+            sum += i.getTotalEndorsements();
+        }
+        return sum;
     }
 
     public FeedDenizen getPost(int id) throws PostIDNotRecognisedException{
@@ -64,13 +74,14 @@ public class Account {
                 return i;
             }
         }
-        return new Post(0, 0, "");
+        return null;
     }
 
     public void setDescription(String str) {
         this.description = str;
     }
 
+    // Finds the total number of elements in the timeline with the same type as the argument  
     public int getNumberOf(String arg){
         int count = 0;
         for (FeedDenizen i : this.timeline){
@@ -82,6 +93,7 @@ public class Account {
         return count;
     }
 
+    // Deletes all of the posts and collects their children, then clears all the user data - handle, description and timeline and returns the children
     public List<Integer> delete(){
         List<Integer> orphans = new ArrayList<>(); 
         for (FeedDenizen i : this.timeline){
@@ -94,24 +106,28 @@ public class Account {
         return orphans;
     }
 
+    // Creates a post on the timeline 
     public Post post(String message){
         Post post = new Post(this.timeline.size(), this.ID, message); 
         this.timeline.add(post);
         return post;
     }
 
+    // Creates an endorsement on the timeline 
     public Endorsement endorse(int id){
         Endorsement endorsement = new Endorsement(this.timeline.size(), this.ID, id);
         this.timeline.add(endorsement);
         return endorsement;
     }
 
+    // Creates a comment on the timeline 
     public Comment comment(String message, int postID){
         Comment comment = new Comment(this.timeline.size(), this.ID, postID, message);
         this.timeline.add(comment);
         return comment;
     }
 
+    // Deletes a post given specific ID
     public List<Integer> deletePost(int id) throws PostIDNotRecognisedException{
         FeedDenizen post = getPost(id);
         List<Integer> orphans = post.getChildren();
