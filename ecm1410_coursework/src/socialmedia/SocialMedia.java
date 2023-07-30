@@ -10,6 +10,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 
 
+
+
 public class SocialMedia implements SocialMediaPlatform {
 
 	ArrayList<Account> accounts = new ArrayList<>(); //List of Accounts

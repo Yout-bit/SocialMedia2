@@ -35,7 +35,6 @@ abstract class FeedDenizen {
         return 0;
     }
 
-
     public int getTotalEndorsements(){
         return 0;
     }
